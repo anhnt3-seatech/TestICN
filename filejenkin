@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    tools {
+        ant 'ApacheAnt'      // tên Ant trong Jenkins
+        jdk 'jdk17'          // tên JDK trong Jenkins
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-org/your-repo.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'ant clean compile dist'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'ant test'
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'dist/*.jar', fingerprint: true
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Ví dụ copy file .war lên Tomcat qua SCP
+                sh 'scp dist/yourapp.war user@server:/opt/tomcat/webapps/'
+            }
+        }
+    }
+    post {
+        always {
+            echo "Pipeline finished!"
+        }
+        success {
+            echo "Build & Deploy successful!"
+        }
+        failure {
+            echo "Build failed!"
+        }
+    }
+}
