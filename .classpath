@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/resources.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/rt.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/jsse.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/jce.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/charsets.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/jfr.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/access-bridge-32.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/cldrdata.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/dnsns.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/jaccess.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/jfxrt.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/localedata.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/nashorn.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/sunec.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/sunjce_provider.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/sunmscapi.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/sunpkcs11.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Java/jdk1.8.0_202/jre/lib/ext/zipfs.jar"/>
+	<classpathentry kind="lib" path="lib/navigatorAPI.jar"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="lib/j2ee.jar"/>
+	<classpathentry kind="lib" path="E:/Ntanh/Working/MSB/Implement/ECM/03.Coding/01.Source/MSB_SRC/TestPlugin/lib/navigatorAPI.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
