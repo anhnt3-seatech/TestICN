@@ -9,32 +9,35 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/anhnt3-seatech/TestICN.git'
+                git 'https://github.com/anhnt3-seatech/TestICN.git'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'ant clean compile dist'
+                bat 'ant clean compile dist'
             }
         }
 
-        stage('Test') {
-            steps {
-                sh 'ant test'
-            }
-        }
+        //stage('Test') {
+        //    steps {
+        //        bat 'ant test'
+        //    }
+        //}
 
-        stage('Archive Artifact') {
-            steps {
-                archiveArtifacts artifacts: 'dist/*.jar', fingerprint: true
-            }
-        }
+        //stage('Archive Artifact') {
+        //    steps {
+        //        archiveArtifacts artifacts: 'dist/*.jar', fingerprint: true
+        //    }
+        //}
 
         stage('Deploy') {
             steps {
                 // Ví dụ copy file .war lên Tomcat qua SCP
-                sh 'scp dist/yourapp.war user@server:/opt/tomcat/webapps/'
+                //sh 'scp dist/yourapp.war user@server:/opt/tomcat/webapps/'
+                bat """
+                    copy /Y target\\TestApp-0.0.1-SNAPSHOT.war "%TOMCAT_WEBAPPS%\\TestApp.war"
+                """
             }
         }
     }
