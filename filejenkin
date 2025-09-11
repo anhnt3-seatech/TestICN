@@ -3,7 +3,6 @@ pipeline {
 
     tools {
         ant 'ApacheAnt'      // tên Ant trong Jenkins
-        jdk 'jdk17'          // tên JDK trong Jenkins
     }
 
     stages {
