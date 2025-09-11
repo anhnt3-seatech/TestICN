@@ -37,7 +37,7 @@ pipeline {
                 // Ví dụ copy file .war lên Tomcat qua SCP
                 //sh 'scp dist/yourapp.war user@server:/opt/tomcat/webapps/'
                 bat """
-                    copy /Y target\\TestABC.war "%TOMCAT_WEBAPPS%\\TestABC.war"
+                    copy /Y dist\\TestABC.war "%TOMCAT_WEBAPPS%\\TestABC.war"
                 """
             }
         }
