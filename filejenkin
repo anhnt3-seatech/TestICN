@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+	environment {
+    	TOMCAT_WEBAPPS = "E:\\Setup\\devtools\\apache-tomcat-8.0.53\\webapps"
+    }
     tools {
         ant 'ApacheAnt'      // tên Ant trong Jenkins
     }
@@ -35,7 +37,7 @@ pipeline {
                 // Ví dụ copy file .war lên Tomcat qua SCP
                 //sh 'scp dist/yourapp.war user@server:/opt/tomcat/webapps/'
                 bat """
-                    copy /Y target\\TestApp-0.0.1-SNAPSHOT.war "%TOMCAT_WEBAPPS%\\TestApp.war"
+                    copy /Y target\\TestABC.war "%TOMCAT_WEBAPPS%\\TestABC.war"
                 """
             }
         }
