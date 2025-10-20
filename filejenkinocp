@@ -2,14 +2,14 @@ pipeline {
     agent any
     
     tools {
-        ant 'ApacheAnt'   // cấu hình Ant trong Jenkins (Manage Jenkins → Tools)
-        jdk 'jdk11'       // JDK version phù hợp với CP4BA
+        ant 'ApacheAnt'   // cáº¥u hÃ¬nh Ant trong Jenkins (Manage Jenkins â†’ Tools)
+        jdk 'jdk11'       // JDK version phÃ¹ há»£p vá»›i CP4BA
     }
 
 	environment {
         NAMESPACE = "cp4ba-namespace"     // namespace CP4BA
-        ICN_LABEL = "app=icn"             // label selector để tìm pod ICN
-        PLUGIN_PATH = "/opt/ibm/plugins"  // thư mục plugin trong pod ICN
+        ICN_LABEL = "app=icn"             // label selector Ä‘á»ƒ tÃ¬m pod ICN
+        PLUGIN_PATH = "/opt/ibm/plugins"  // thÆ° má»¥c plugin trong pod ICN
     }
     stages {
         stage('Checkout') {
@@ -52,10 +52,10 @@ pipeline {
     
 	post {
         success {
-            echo "✅ ICN Plugin build & deploy thành công!"
+            echo "âœ… ICN Plugin build & deploy thÃ nh cÃ´ng!"
         }
         failure {
-            echo "❌ Pipeline thất bại!"
+            echo "â�Œ Pipeline tháº¥t báº¡i!"
         }
     }
 }
