@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+    
+    tools {
+        ant 'ApacheAnt'   // cáº¥u hÃ¬nh Ant trong Jenkins (Manage Jenkins â†’ Tools)
+        jdk 'jdk11'       // JDK version phÃ¹ há»£p vá»›i CP4BA
+    }
+
+	environment {
+        NAMESPACE = "cp4ba-namespace"     // namespace CP4BA
+        ICN_LABEL = "app=icn"             // label selector Ä‘á»ƒ tÃ¬m pod ICN
+        PLUGIN_PATH = "/opt/ibm/plugins"  // thÆ° má»¥c plugin trong pod ICN
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/anhnt3-seatech/TestICN.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'ant clean compile dist'
+            }
+        }
+        
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'dist/*.jar', fingerprint: true
+            }
+        }
+        
+         stage('Deploy to ICN Pod') {
+            steps {
+                script {
+                    sh '''
+                        echo ">>> Switch namespace"
+                        oc project $NAMESPACE
+
+                        echo ">>> Get ICN pod name"
+                        ICN_POD=$(oc get pod -l $ICN_LABEL -o jsonpath="{.items[0].metadata.name}")
+
+                        echo ">>> Copy plugin JAR to ICN pod"
+                        oc cp dist/*.jar $ICN_POD:$PLUGIN_PATH/
+
+                        echo ">>> Restart ICN pod to reload plugin"
+                        oc delete pod $ICN_POD
+                    '''
+                }
+            }
+        }
+    
+	post {
+        success {
+            echo "âœ… ICN Plugin build & deploy thÃ nh cÃ´ng!"
+        }
+        failure {
+            echo "â�Œ Pipeline tháº¥t báº¡i!"
+        }
+    }
+}
