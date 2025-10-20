@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+    
+    tools {
+        ant 'ApacheAnt'   // cấu hình Ant trong Jenkins (Manage Jenkins → Tools)
+        jdk 'jdk11'       // JDK version phù hợp với CP4BA
+    }
+
+	environment {
+        NAMESPACE = "cp4ba-namespace"     // namespace CP4BA
+        ICN_LABEL = "app=icn"             // label selector để tìm pod ICN
+        PLUGIN_PATH = "/opt/ibm/plugins"  // thư mục plugin trong pod ICN
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/anhnt3-seatech/TestICN.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'ant clean compile dist'
+            }
+        }
+        
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'dist/*.jar', fingerprint: true
+            }
+        }
+        
+         stage('Deploy to ICN Pod') {
+            steps {
+                script {
+                    sh '''
+                        echo ">>> Switch namespace"
+                        oc project $NAMESPACE
+
+                        echo ">>> Get ICN pod name"
+                        ICN_POD=$(oc get pod -l $ICN_LABEL -o jsonpath="{.items[0].metadata.name}")
+
+                        echo ">>> Copy plugin JAR to ICN pod"
+                        oc cp dist/*.jar $ICN_POD:$PLUGIN_PATH/
+
+                        echo ">>> Restart ICN pod to reload plugin"
+                        oc delete pod $ICN_POD
+                    '''
+                }
+            }
+        }
+    
+	post {
+        success {
+            echo "✅ ICN Plugin build & deploy thành công!"
+        }
+        failure {
+            echo "❌ Pipeline thất bại!"
+        }
+    }
+}
