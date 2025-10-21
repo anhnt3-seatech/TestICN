@@ -2,15 +2,18 @@ pipeline {
     agent any
     
     tools {
-        ant 'ApacheAnt'   // cáº¥u hÃ¬nh Ant trong Jenkins (Manage Jenkins â†’ Tools)
-        jdk 'jdk11'       // JDK version phÃ¹ há»£p vá»›i CP4BA
+        ant 'ApacheAnt'   // Cấu hình tool Ant trong Jenkins
     }
 
-	environment {
-        NAMESPACE = "cp4ba-namespace"     // namespace CP4BA
-        ICN_LABEL = "app=icn"             // label selector Ä‘á»ƒ tÃ¬m pod ICN
-        PLUGIN_PATH = "/opt/ibm/plugins"  // thÆ° má»¥c plugin trong pod ICN
+    environment {
+        NAMESPACE = "cp4ba-dev"          // namespace CP4BA
+        ICN_LABEL = "app=icp4adeploy-navigator-deploy"                  // label để tìm pod ICN
+        PLUGIN_PATH = "/opt/ibm/plugins"
+        PLUGIN_CLASS = "com.vn.test.TestABCPlugin"  // class plugin chính
+        ICN_URL = "https://cpd-cp4ba-dev.apps.cp4ba.linuxtechi.lan/icn/navigator/"
+        PATH = "C:\\temp\\ocp;${env.PATH}"
     }
+
     stages {
         stage('Checkout') {
             steps {
@@ -18,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build Plugin') {
             steps {
                 bat 'ant clean compile dist'
             }
@@ -30,32 +33,49 @@ pipeline {
             }
         }
         
-         stage('Deploy to ICN Pod') {
+        stage('Deploy to ICN Pod') {
             steps {
                 script {
-                    sh '''
+                    bat """
+                        echo ">>> Login to OpenShift"
+                        oc login --token=sha256~L2CjdQsFs48utnDr-5_cawKAjkUsCRYNEZcr8MR3M68 --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
                         echo ">>> Switch namespace"
-                        oc project $NAMESPACE
+                        oc project %NAMESPACE%
 
                         echo ">>> Get ICN pod name"
-                        ICN_POD=$(oc get pod -l $ICN_LABEL -o jsonpath="{.items[0].metadata.name}")
+                        for /f "delims=" %%i in ('oc get pod -n cp4ba-dev -l app^=icp4adeploy-navigator-deploy -o jsonpath^="{.items[0].metadata.name}"') do set ICN_POD=%%i
+                        echo Found ICN pod: %ICN_POD%
+                        if "%ICN_POD%"=="" (
+                            echo "ERROR: Không tìm thấy ICN pod!"
+                            exit /b 1
+                        )
 
                         echo ">>> Copy plugin JAR to ICN pod"
-                        oc cp dist/*.jar $ICN_POD:$PLUGIN_PATH/
+                        oc cp dist\\TestABC.jar %NAMESPACE%/%ICN_POD%:%PLUGIN_PATH%/
 
-                        echo ">>> Restart ICN pod to reload plugin"
-                        oc delete pod $ICN_POD
-                    '''
+                    """
                 }
             }
         }
-    
-	post {
+        stage('Reload Plugin') {
+            steps {
+                script {
+                    bat """
+                        echo ">>> Try reload ICN plugin"
+                        curl -k -X POST "%ICN_URL%/configuration?action=loadPlugin&pluginClass=%PLUGIN_CLASS%"
+                        oc delete pod -n cp4ba-dev -l app=icp4adeploy-navigator-deploy
+                    """
+                }
+            }
+        }
+    }
+
+    post {
         success {
-            echo "âœ… ICN Plugin build & deploy thÃ nh cÃ´ng!"
+            echo "✅ ICN Plugin build & deploy thành công!"
         }
         failure {
-            echo "â�Œ Pipeline tháº¥t báº¡i!"
+            echo "❌ Pipeline thất bại!"
         }
     }
 }
