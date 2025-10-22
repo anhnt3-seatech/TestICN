@@ -63,7 +63,7 @@ pipeline {
                     bat """
                         echo ">>> Try reload ICN plugin"
                         curl -k -X POST "%ICN_URL%/configuration?action=loadPlugin&pluginClass=%PLUGIN_CLASS%"
-                        oc delete pod -n cp4ba-dev -l app=icp4adeploy-navigator-deploy
+                        echo ">>>oc delete pod -n cp4ba-dev -l app=icp4adeploy-navigator-deploy"
                     """
                 }
             }
