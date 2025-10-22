@@ -8,6 +8,6 @@ lang.setObject("testAction", function(repository, items, callback, teamspace, re
  /*
   * Add custom code for your action here. For example, your action might launch a dialog or call a plug-in service.
   */
-	alert("version testAction 3");
+	alert("version testAction 4");
 });
 });
