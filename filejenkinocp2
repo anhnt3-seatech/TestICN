@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    environment {
+        TOKEN_URL = 'https://cp-console-cp4ba-dev.apps.cp4ba.linuxtechi.lan/idprovider/v1/auth/identitytoken'
+        CLIENT_ID = 'rm9egkx2wa7px4ngudn36z06omfsy91d'
+        USERNAME  = 'cp4badmin'
+        PASSWORD  = 'Abc@123'
+        ACCESS_TOKEN = ''
+    }
+
+    stages {
+        stage('Get Access Token') {
+            steps {
+                bat '''
+                    echo Calling API to get access token...
+
+                    rem --- Gọi API và lưu kết quả ra file tạm ---
+                    curl -k -X POST "%TOKEN_URL%" ^
+                      -H "Content-Type: application/x-www-form-urlencoded" ^
+                      -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
+                      -o response.json
+
+                    rem --- Parse access_token từ JSON bằng PowerShell ---
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
+                        set ACCESS_TOKEN=%%a
+                    )
+
+                    echo Access Token: %ACCESS_TOKEN%
+
+                    rem --- Ghi token vào file để stage sau có thể đọc ---
+                    echo %ACCESS_TOKEN% > token.txt
+                '''
+            }
+        }
+
+        stage('Use Token') {
+            steps {
+                bat '''
+                    rem --- Đọc lại token ---
+                    set /p ACCESS_TOKEN=<token.txt
+                    echo Using token: %ACCESS_TOKEN%
+
+                    rem --- Ví dụ dùng token cho API khác ---
+                    curl -k -H "Authorization: Bearer %ACCESS_TOKEN%" https://example.com/api/test
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Cleaning temporary files..."
+            bat 'if exist response.json del response.json'
+            bat 'if exist token.txt del token.txt'
+        }
+    }
+}
