@@ -80,18 +80,7 @@ pipeline {
 					    set JSON_ICN=%%a
 					)
 					echo JSON_ICN xxxx=%JSON_ICN%
-					
-					
-					
-                '''
-                powershell '''
-					$raw = Get-Content "icnload.json" -Raw
-					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
-					Write-Host 	"$json"		
-					$json | Out-File -FilePath "icnjson.json" -Encoding ascii
-				'''
-                bat '''
-                	set /p JSON_ICN=<icnjson.json
+                
                 	echo === Save ICN Plugin ===
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
