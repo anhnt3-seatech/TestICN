@@ -73,7 +73,7 @@ pipeline {
                     type icnload.json
                 '''
                 powershell '''
-					$raw = Get-Content "icnresponse.json" -Raw
+					$raw = Get-Content "icnload.json" -Raw
 					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
 					Write-Host 	"$json"		
 					$json | Out-File -FilePath "icnjson.json" -Encoding ascii
