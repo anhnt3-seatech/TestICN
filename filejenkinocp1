@@ -18,7 +18,11 @@ pipeline {
         PASSWORD  = 'Abc@123'
         ACCESS_TOKEN = ''
         SECURITY_TOKEN = ''
-        JSON_ICN='{}'
+        JSON_ICN=''
+        PATH_PLUGIN='/opt/ibm/plugins/TestABC.jar'
+        URL_ICN_LOGON='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon';
+        URL_ICN_LOAD_PLUGIN='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin'
+        URL_ICN_SAVE_PLUGIN='http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration'
     }
 
     stages {
@@ -64,7 +68,7 @@ pipeline {
                 }
             }
         }
-        stage('Deploy ICN Plugin') {
+        stage('Get Access Token') {
             steps {
                 bat '''
                     echo Calling API to get access token...
@@ -75,57 +79,70 @@ pipeline {
                       -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
                       -o response.json
 					
-					
+					echo === response (raw JSON) ===
+                    type response.json
+                    echo ===============================
+                    
                     rem --- Parse access_token từ JSON bằng PowerShell ---
                     for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
                         set ACCESS_TOKEN=%%a
                     )
 
+                    echo Access Token: %ACCESS_TOKEN%
+
                     rem --- Ghi token vào file để stage sau có thể đọc ---
                     echo %ACCESS_TOKEN% > token.txt
                     
-                    rem -- logon ICN for getting Security_token---
+                    timeout /t 5 /nobreak >nul
+                    
                     curl -k -c cookies.txt ^
                       -H "Authorization: Bearer %ACCESS_TOKEN%" ^
-                      "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon?desktop=admin&forceBasic=true" ^
+                      "%URL_ICN_LOGON%?desktop=admin&forceBasic=true" ^
                       -H "Content-Type: application/x-www-form-urlencoded" ^
                       -d "userid=%USERNAME%&password=%PASSWORD%" ^
                       -o icnresponse.json
-                '''
-                powershell '''
-					$raw = Get-Content "icnresponse.json" -Raw
-					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
-					$sec = (ConvertFrom-Json $json).security_token
-					$sec | Out-File -FilePath "security_token.txt" -Encoding ascii
-				'''
-				bat '''
-                    set /p SECURITY_TOKEN=<security_token.txt
-                    
-                    
-                    echo === Loading ICN Plugin ===
-                                     
+
+					echo === ICN Response (raw JSON) ===
+                    type icnresponse.json
+                    echo ===============================
+
+					rem for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
+ 					rem "$raw = Get-Content icnresponse.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
+					rem 	set SECURITY_TOKEN=%%a
+ 					rem )
+					rem echo Security Token: %SECURITY_TOKEN%
+
+					for /f "usebackq delims=" %%a in (`
+					    powershell -NoProfile -Command ^
+					    "$raw = Get-Content 'icnresponse.json' -Raw; " ^
+					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
+					    "Write-Output ((ConvertFrom-Json $json).security_token)"
+					`) do (
+					    set SECURITY_TOKEN=%%a
+					)
+					
+					timeout /t 5 /nobreak >nul
+					
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
-                      -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar&plugin=TestABCPlugin&enable=true" ^
+                      -X POST "%URL_ICN_LOAD_PLUGIN%?desktop=admin&fileName=%PATH_PLUGIN%&plugin=TestABCPlugin&enable=true" ^
                       -o icnload.json
-                    type icnload.json
-                    
-                '''
-                powershell '''
-					$raw = Get-Content "icnload.json" -Raw
-					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
-					$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '/opt/ibm/plugins/TestABC.jar'
-					$json | Out-File -FilePath "icnjson.json" -Encoding ascii
-				'''
-                bat '''
-                	set /p JSON_ICN=<icnjson.json
-                	echo === Save ICN Plugin ===
+                      
+					for /f "usebackq delims=" %%a in (`
+					    powershell -NoProfile -Command ^
+					    "$raw = Get-Content 'icnload.json' -Raw; " ^
+					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
+					    "$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '/opt/ibm/plugins/TestABC.jar'; " ^
+					    "Write-Output $json"
+					`) do (
+					    set JSON_ICN=%%a
+					)              
+ 					echo === Save ICN Plugin ===
+ 					timeout /t 5 /nobreak >nul
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
-                      -X POST "http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
+                      -X POST "%URL_ICN_SAVE_PLUGIN%?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
                       -d 'json_post=%JSON_ICN%'
-                	
-                	
                 '''
             }
         }
