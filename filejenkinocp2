@@ -64,14 +64,19 @@ pipeline {
 				'''
 				bat '''
                     set /p SECURITY_TOKEN=<security_token.txt
-                    echo === Loading ICN Plugin with token %SECURITY_TOKEN% ===
-                    
                     set /p JSON_ICN=<json_icn.json
-                    echo === Loading ICN Plugin with json %JSON_ICN% ===
+                    
+                    echo === Loading ICN Plugin ===
                     
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar"
+                    
+                    echo === Save ICN Plugin ===
+                    curl -k -b cookies.txt ^
+                      -H "security_token: %SECURITY_TOKEN%" ^
+                      -X POST "http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
+                      -d %JSON_ICN%"
                 	
                 	
                 '''
