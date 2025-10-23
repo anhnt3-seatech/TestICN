@@ -63,20 +63,7 @@ pipeline {
 					    set SECURITY_TOKEN=%%a
 					)
 					
-					echo SECURITY_TOKEN xxxx=%SECURITY_TOKEN%
-                '''
-                powershell '''
-					$raw = Get-Content "icnresponse.json" -Raw
-					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
-					$sec = (ConvertFrom-Json $json).security_token
-					$sec | Out-File -FilePath "security_token.txt" -Encoding ascii
-				'''
-				bat '''
-                    set /p SECURITY_TOKEN=<security_token.txt
-                    
-                    
-                    echo === Loading ICN Plugin ===
-                    
+					echo SECURITY_TOKEN xxxx=%SECURITY_TOKEN%                   
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar" ^
