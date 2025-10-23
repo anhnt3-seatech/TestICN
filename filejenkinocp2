@@ -70,6 +70,7 @@ pipeline {
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar" ^
                       -o icnload.json
+                    type icnload.json
                 '''
                 powershell '''
 					$json = Get-Content "icnload.json" -Raw | ConvertFrom-Json
