@@ -57,7 +57,7 @@ pipeline {
 					$raw = Get-Content "icnresponse.json" -Raw
 					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
 					$sec = (ConvertFrom-Json $json).security_token
-					$SECURITY_TOKEN=$sec
+					$env:SECURITY_TOKEN=$sec
 					Write-Host "Security Token: $sec"
 					$sec | Out-File -FilePath "security_token.txt" -Encoding ascii
 				'''
