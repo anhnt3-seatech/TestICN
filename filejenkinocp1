@@ -106,7 +106,7 @@ pipeline {
                     
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
-                      -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar" ^
+                      -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar&plugin=TestABCPlugin&enable=true" ^
                       -o icnload.json
                     type icnload.json
                 '''
