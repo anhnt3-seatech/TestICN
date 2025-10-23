@@ -43,7 +43,19 @@ pipeline {
 
                     rem --- Ví dụ dùng token cho API khác ---
                     rem curl -k -H "Authorization: Bearer %ACCESS_TOKEN%" https://example.com/api/test
-                    curl -k -c cookies.txt -H "Authorization: Bearer %ACCESS_TOKEN%" "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon?desktop=admin" -H "Content-Type: application/x-www-form-urlencoded" -d "userid=%USERNAME%&password=%PASSWORD%"
+                    rem curl -k -c cookies.txt -H "Authorization: Bearer %ACCESS_TOKEN%" "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon?desktop=admin" -H "Content-Type: application/x-www-form-urlencoded" -d "userid=%USERNAME%&password=%PASSWORD%"
+					curl -k -c cookies.txt ^
+                      -H "Authorization: Bearer %ACCESS_TOKEN%" ^
+                      "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon?desktop=admin" ^
+                      -H "Content-Type: application/x-www-form-urlencoded" ^
+                      -d "userid=%USERNAME%&password=%PASSWORD%" ^
+                      -o icn_response.json
+
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content icn_response.json -Raw) -replace '.*\\{\"','{\"' | ConvertFrom-Json | Select-Object -ExpandProperty security_token"') do (
+                        set SECURITY_TOKEN=%%a
+                    )
+
+                    echo SECURITY_TOKEN=%%a > token.txt                    
                     
                     
                 '''
