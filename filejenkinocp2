@@ -73,7 +73,7 @@ pipeline {
 					
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
-                      -X POST "%URL_ICN_LOAD_PLUGIN%?desktop=admin&fileName=%PATH_PLUGIN%&plugin=TestABCPlugin&enable=true" ^
+                      -X POST "%URL_ICN_LOAD_PLUGIN%?desktop=admin&fileName=%PATH_PLUGIN%" ^
                       -o icnload.json
                       
 					for /f "usebackq delims=" %%a in (`
