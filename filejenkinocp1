@@ -64,7 +64,7 @@ pipeline {
                 }
             }
         }
-        stage('Get Access Token') {
+        stage('Deploy ICN Plugin') {
             steps {
                 bat '''
                     echo Calling API to get access token...
@@ -75,36 +75,22 @@ pipeline {
                       -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
                       -o response.json
 					
-					echo === response (raw JSON) ===
-                    type response.json
-                    echo ===============================
-                    
+					
                     rem --- Parse access_token từ JSON bằng PowerShell ---
                     for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
                         set ACCESS_TOKEN=%%a
                     )
 
-                    echo Access Token: %ACCESS_TOKEN%
-
                     rem --- Ghi token vào file để stage sau có thể đọc ---
                     echo %ACCESS_TOKEN% > token.txt
                     
+                    rem -- logon ICN for getting Security_token---
                     curl -k -c cookies.txt ^
                       -H "Authorization: Bearer %ACCESS_TOKEN%" ^
                       "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon?desktop=admin&forceBasic=true" ^
                       -H "Content-Type: application/x-www-form-urlencoded" ^
                       -d "userid=%USERNAME%&password=%PASSWORD%" ^
                       -o icnresponse.json
-
-					echo === ICN Response (raw JSON) ===
-                    type icnresponse.json
-                    echo ===============================
-
-					rem for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
- 					rem "$raw = Get-Content icnresponse.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
-					rem 	set SECURITY_TOKEN=%%a
- 					rem )
-					rem echo Security Token: %SECURITY_TOKEN%
                 '''
                 powershell '''
 					$raw = Get-Content "icnresponse.json" -Raw
@@ -127,7 +113,6 @@ pipeline {
                 powershell '''
 					$raw = Get-Content "icnload.json" -Raw
 					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
-					Write-Host 	"$json"		
 					$json | Out-File -FilePath "icnjson.json" -Encoding ascii
 				'''
                 bat '''
@@ -150,6 +135,17 @@ pipeline {
         }
         failure {
             echo "❌ Pipeline thất bại!"
+        }
+        always {
+            echo "Cleaning temporary files..."
+            bat 'if exist response.json del response.json'
+            bat 'if exist token.txt del token.txt'
+            bat 'if exist icn_response.json del icn_response.json'
+            bat 'if exist security_token.txt del security_token.txt'
+            bat 'if exist icn_response.json del icnload.json'
+            bat 'if exist icnload.json del icnload.json'
+            bat 'if exist icnjson.json del icnjson.json'
+            bat 'if exist icnresponse.json del icnresponse.json'
         }
     }
 }
