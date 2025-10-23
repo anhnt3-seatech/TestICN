@@ -56,7 +56,7 @@ pipeline {
 					rem 	set SECURITY_TOKEN=%%a
  					rem )
 					rem echo Security Token: %SECURITY_TOKEN%
-					echo off
+
 					for /f "usebackq delims=" %%a in (`
 					    powershell -NoProfile -Command ^
 					    "$raw = Get-Content 'icnresponse.json' -Raw; " ^
