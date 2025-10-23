@@ -74,7 +74,7 @@ pipeline {
                 powershell '''
 					$json =$json = Get-Content "icnload.json" -Raw | ConvertFrom-Json					
 					$json | Out-File -FilePath "icnjson.json" -Encoding ascii
-					
+				'''
                 bat '''
                 	set /p JSON_ICN=<icnjson.json
                 	echo === Save ICN Plugin ===
