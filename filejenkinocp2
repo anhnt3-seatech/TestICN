@@ -51,7 +51,7 @@ pipeline {
                       -d "userid=%USERNAME%&password=%PASSWORD%" ^
                       -o icn_response.json
 
-                    for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content icn_response.json -Raw) -replace ''^\{\}\&\&'' , '' '' | ConvertFrom-Json | Select-Object -ExpandProperty security_token"') do (
+                    for /F "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content icn_response.json -Raw) -replace ^'^\\{\\}\\&\\&^', '' | ConvertFrom-Json | Select-Object -ExpandProperty security_token"') do (
                         set SECURITY_TOKEN=%%a
                     )
 
