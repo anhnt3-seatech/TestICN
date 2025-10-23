@@ -55,8 +55,7 @@ pipeline {
                         set SECURITY_TOKEN=%%a
                     )
 
-                    echo SECURITY_TOKEN=%%a > token.txt                    
-                    
+                    echo SECURITY_TOKEN=%%a > token.txt                                        
                     
                 '''
             }
