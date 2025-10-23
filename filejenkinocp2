@@ -74,7 +74,8 @@ pipeline {
 					for /f "usebackq delims=" %%a in (`
 					    powershell -NoProfile -Command ^
 					    "$raw = Get-Content 'icnload.json' -Raw; " ^
-					    "$json = $raw.Substring($raw.IndexOf('{', 2)); "
+					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
+					    "Write-Output $json"
 					`) do (
 					    set JSON_ICN=%%a
 					)
