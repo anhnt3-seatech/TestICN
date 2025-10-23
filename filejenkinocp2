@@ -65,7 +65,7 @@ pipeline {
 					`) do (
 					    set SECURITY_TOKEN=%%a
 					)
-					
+					timeout /t 10 /nobreak >nul
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "%URL_ICN_LOAD_PLUGIN%?desktop=admin&fileName=%PATH_PLUGIN%" ^
