@@ -20,6 +20,7 @@ pipeline {
         SECURITY_TOKEN = ''
         JSON_ICN='{}'
         URL_OCP_LOGIN='https://api.cp4ba.linuxtechi.lan:6443'
+        RAW_CLIENT_ID=''
     }
 
     stages {
