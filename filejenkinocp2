@@ -53,6 +53,17 @@ pipeline {
 					rem 	set SECURITY_TOKEN=%%a
  					rem )
 					rem echo Security Token: %SECURITY_TOKEN%
+					echo off
+					for /f "usebackq delims=" %%a in (`
+					    powershell -NoProfile -Command ^
+					    "$raw = Get-Content 'icnresponse.json' -Raw; " ^
+					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
+					    "Write-Output ((ConvertFrom-Json $json).security_token)"
+					`) do (
+					    set SECURITY_TOKEN=%%a
+					)
+					
+					echo SECURITY_TOKEN xxxx=%SECURITY_TOKEN%
                 '''
                 powershell '''
 					$raw = Get-Content "icnresponse.json" -Raw
