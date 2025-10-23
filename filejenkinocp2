@@ -21,11 +21,20 @@ pipeline {
                       -H "Content-Type: application/x-www-form-urlencoded" ^
                       -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
                       -o response.json
+					
+					echo === response (raw JSON) ===
+                    type response.json
+                    echo ===============================
                     
                     rem --- Parse access_token từ JSON bằng PowerShell ---
                     for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
                         set ACCESS_TOKEN=%%a
                     )
+
+                    echo Access Token: %ACCESS_TOKEN%
+
+                    rem --- Ghi token vào file để stage sau có thể đọc ---
+                    echo %ACCESS_TOKEN% > token.txt
                     
                     curl -k -c cookies.txt ^
                       -H "Authorization: Bearer %ACCESS_TOKEN%" ^
@@ -39,17 +48,11 @@ pipeline {
                     echo ===============================
                     
                     
-                    for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
+                    for /f "usebackq delims=" %%aa in ('powershell -NoProfile -Command ^
 					  "$raw = Get-Content icnresponse.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
-					    set SECURITY_TOKEN=%%a
+					    set SECURITY_TOKEN=%%aa
 					)
 					echo Security Token: %SECURITY_TOKEN%
-					
-
-                    echo Access Token: %ACCESS_TOKEN%
-
-                    rem --- Ghi token vào file để stage sau có thể đọc ---
-                    echo %ACCESS_TOKEN% > token.txt
                 '''
             }
         }
@@ -58,8 +61,8 @@ pipeline {
             steps {
                 bat '''
                     rem --- Đọc lại token ---
-                    set /p ACCESS_TOKEN=<token.txt
-                    echo Using token: %ACCESS_TOKEN%
+                    rem set /p ACCESS_TOKEN=<token.txt
+                    rem echo Using token: %ACCESS_TOKEN%
 
                     rem --- Ví dụ dùng token cho API khác ---
                     rem curl -k -H "Authorization: Bearer %ACCESS_TOKEN%" https://example.com/api/test
