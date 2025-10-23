@@ -55,7 +55,7 @@ pipeline {
                 '''
                 powershell '''
 					$raw = Get-Content "icnresponse.json" -Raw
-					$json = $raw -replace '^\{\}\&\&',''
+					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
 					$sec = (ConvertFrom-Json $json).security_token
 					Write-Host "Security Token: $sec"
 					$sec | Out-File -FilePath "security_token.txt" -Encoding ascii
