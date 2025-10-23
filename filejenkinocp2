@@ -76,7 +76,7 @@ pipeline {
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
-                      -d "json_post=%JSON_ICN%"
+                      -d 'json_post=%JSON_ICN%'
                 	
                 	
                 '''
