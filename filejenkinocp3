@@ -64,7 +64,7 @@ pipeline {
                         oc cp dist\\TestABC.jar %NAMESPACE%/%ICN_POD%:%PLUGIN_PATH%/
 
 						rem --- Bước 1: Lấy giá trị base64 của client_id ---
-						for /f "usebackq delims=" %%a in (`oc get secret cpd-oidcclient-secret -n cp4ba-dev -o jsonpath="{.data.CLIENT_ID}"`) do (
+						for /f "usebackq delims=" %%a in ('oc get secret cpd-oidcclient-secret -n cp4ba-dev -o jsonpath="{.data.CLIENT_ID}"') do (
 						    set RAW_CLIENT_ID=%%a
 						)
 						
