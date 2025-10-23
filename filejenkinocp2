@@ -48,9 +48,9 @@ pipeline {
                     echo ===============================
                     
                     
-                    for /f "usebackq delims=" %%aa in ('powershell -NoProfile -Command ^
+                    for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
 					  "$raw = Get-Content icnresponse.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
-					    set SECURITY_TOKEN=%%aa
+					    set SECURITY_TOKEN=%%a
 					)
 					echo Security Token: %SECURITY_TOKEN%
                 '''
