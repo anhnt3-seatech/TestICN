@@ -1,0 +1,153 @@
+pipeline {
+    agent any
+    
+    tools {
+        ant 'ApacheAnt'   // Cấu hình tool Ant trong Jenkins
+    }
+
+    environment {
+        NAMESPACE = "cp4ba-dev"          // namespace CP4BA
+        ICN_LABEL = "app=icp4adeploy-navigator-deploy"                  // label để tìm pod ICN
+        PLUGIN_PATH = "/opt/ibm/plugins"
+        PLUGIN_CLASS = "com.vn.test.TestABCPlugin"  // class plugin chính
+        ICN_URL = "https://cpd-cp4ba-dev.apps.cp4ba.linuxtechi.lan/icn/navigator/"
+        PATH = "C:\\temp\\ocp;${env.PATH}"
+        TOKEN_URL = 'https://cp-console-cp4ba-dev.apps.cp4ba.linuxtechi.lan/idprovider/v1/auth/identitytoken'
+        CLIENT_ID = 'rm9egkx2wa7px4ngudn36z06omfsy91d'
+        USERNAME  = 'cp4badmin'
+        PASSWORD  = 'Abc@123'
+        ACCESS_TOKEN = ''
+        SECURITY_TOKEN = ''
+        JSON_ICN='{}'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/anhnt3-seatech/TestICN.git'
+            }
+        }
+
+        stage('Build Plugin') {
+            steps {
+                bat 'ant clean compile dist'
+            }
+        }
+        
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'dist/*.jar', fingerprint: true
+            }
+        }
+        
+        stage('Deploy to ICN Pod') {
+            steps {
+                script {
+                    bat """
+                        echo ">>> Login to OpenShift"
+                        oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
+                        echo ">>> Switch namespace"
+                        oc project %NAMESPACE%
+
+                        echo ">>> Get ICN pod name"
+                        for /f "delims=" %%i in ('oc get pod -n cp4ba-dev -l app^=icp4adeploy-navigator-deploy -o jsonpath^="{.items[0].metadata.name}"') do set ICN_POD=%%i
+                        echo Found ICN pod: %ICN_POD%
+                        if "%ICN_POD%"=="" (
+                            echo "ERROR: Không tìm thấy ICN pod!"
+                            exit /b 1
+                        )
+
+                        echo ">>> Copy plugin JAR to ICN pod"
+                        oc cp dist\\TestABC.jar %NAMESPACE%/%ICN_POD%:%PLUGIN_PATH%/
+
+                    """
+                }
+            }
+        }
+        stage('Deploy ICN Plugin') {
+            steps {
+                bat '''
+                    echo Calling API to get access token...
+
+                    rem --- Gọi API và lưu kết quả ra file tạm ---
+                    curl -k -X POST "%TOKEN_URL%" ^
+                      -H "Content-Type: application/x-www-form-urlencoded" ^
+                      -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
+                      -o response.json
+					
+					
+                    rem --- Parse access_token từ JSON bằng PowerShell ---
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
+                        set ACCESS_TOKEN=%%a
+                    )
+
+                    rem --- Ghi token vào file để stage sau có thể đọc ---
+                    echo %ACCESS_TOKEN% > token.txt
+                    
+                    rem -- logon ICN for getting Security_token---
+                    curl -k -c cookies.txt ^
+                      -H "Authorization: Bearer %ACCESS_TOKEN%" ^
+                      "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon?desktop=admin&forceBasic=true" ^
+                      -H "Content-Type: application/x-www-form-urlencoded" ^
+                      -d "userid=%USERNAME%&password=%PASSWORD%" ^
+                      -o icnresponse.json
+                '''
+                powershell '''
+					$raw = Get-Content "icnresponse.json" -Raw
+					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
+					$sec = (ConvertFrom-Json $json).security_token
+					$sec | Out-File -FilePath "security_token.txt" -Encoding ascii
+				'''
+				bat '''
+                    set /p SECURITY_TOKEN=<security_token.txt
+                    
+                    
+                    echo === Loading ICN Plugin ===
+                                     
+                    curl -k -b cookies.txt ^
+                      -H "security_token: %SECURITY_TOKEN%" ^
+                      -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar&plugin=TestABCPlugin&enable=true" ^
+                      -o icnload.json
+                    type icnload.json
+                    
+                '''
+                powershell '''
+					$raw = Get-Content "icnload.json" -Raw
+					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
+					$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '/opt/ibm/plugins/TestABC.jar'
+					$json | Out-File -FilePath "icnjson.json" -Encoding ascii
+				'''
+                bat '''
+                	set /p JSON_ICN=<icnjson.json
+                	echo === Save ICN Plugin ===
+                    curl -k -b cookies.txt ^
+                      -H "security_token: %SECURITY_TOKEN%" ^
+                      -X POST "http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
+                      -d 'json_post=%JSON_ICN%'
+                	
+                	
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ ICN Plugin build & deploy thành công!"
+        }
+        failure {
+            echo "❌ Pipeline thất bại!"
+        }
+        always {
+            echo "Cleaning temporary files..."
+            bat 'if exist response.json del response.json'
+            bat 'if exist token.txt del token.txt'
+            bat 'if exist icn_response.json del icn_response.json'
+            bat 'if exist security_token.txt del security_token.txt'
+            bat 'if exist icn_response.json del icnload.json'
+            bat 'if exist icnload.json del icnload.json'
+            bat 'if exist icnjson.json del icnjson.json'
+            bat 'if exist icnresponse.json del icnresponse.json'
+        }
+    }
+}
