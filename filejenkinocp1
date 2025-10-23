@@ -114,7 +114,7 @@ pipeline {
                 powershell '''
 					$raw = Get-Content "icnload.json" -Raw
 					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
-					$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '/opt/ibm/plugins/TestABC.jar'; ^
+					$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '/opt/ibm/plugins/TestABC.jar'
 					$json | Out-File -FilePath "icnjson.json" -Encoding ascii
 				'''
                 bat '''
