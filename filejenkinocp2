@@ -7,6 +7,7 @@ pipeline {
         USERNAME  = 'cp4badmin'
         PASSWORD  = 'Abc@123'
         ACCESS_TOKEN = ''
+        SECURITY_TOKEN = ''
     }
 
     stages {
@@ -51,9 +52,9 @@ pipeline {
                       -d "userid=%USERNAME%&password=%PASSWORD%" ^
                       -o response.json
 
-                    for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
+                    for /f "usebackq delims=" %%aa in ('powershell -NoProfile -Command ^
 					  "$raw = Get-Content response.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
-					    set SECURITY_TOKEN=%%a
+					    set SECURITY_TOKEN=%%aa
 					)
 					echo Security Token: %SECURITY_TOKEN%
                     
