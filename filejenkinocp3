@@ -13,7 +13,7 @@ pipeline {
         ICN_URL = "https://cpd-cp4ba-dev.apps.cp4ba.linuxtechi.lan/icn/navigator/"
         PATH = "C:\\temp\\ocp;${env.PATH}"
         TOKEN_URL = 'https://cp-console-cp4ba-dev.apps.cp4ba.linuxtechi.lan/idprovider/v1/auth/identitytoken'
-        CLIENT_ID = 'rm9egkx2wa7px4ngudn36z06omfsy91d'
+        CLIENT_ID = 'rm9egkx2wa7px4ngudn36z06omfsy91d_xxxxx'
         USERNAME  = 'cp4badmin'
         PASSWORD  = 'Abc@123'
         ACCESS_TOKEN = ''
@@ -71,6 +71,18 @@ pipeline {
                 bat '''
                     echo Calling API to get access token...
 
+					rem --- Bước 1: Lấy giá trị base64 của client_id ---
+					for /f "usebackq delims=" %%a in (`oc get secret cpd-oidcclient-secret -n cp4ba-dev -o jsonpath="{.data.CLIENT_ID}"`) do (
+					    set RAW_CLIENT_ID=%%a
+					)
+					
+					rem --- Bước 2: Giải mã base64 thành chuỗi UTF8 ---
+					for /f "usebackq delims=" %%b in (`powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"`) do (
+					    set CLIENT_ID=%%b
+					)
+					
+					echo CLIENT_ID: %CLIENT_ID%					
+					
                     rem --- Gọi API và lưu kết quả ra file tạm ---
                     curl -k -X POST "%TOKEN_URL%" ^
                       -H "Content-Type: application/x-www-form-urlencoded" ^
