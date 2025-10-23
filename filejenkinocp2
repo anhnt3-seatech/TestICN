@@ -80,6 +80,7 @@ pipeline {
 					    powershell -NoProfile -Command ^
 					    "$raw = Get-Content 'icnload.json' -Raw; " ^
 					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
+					    "$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '/opt/ibm/plugins/TestABC.jar'; " ^
 					    "Write-Output $json"
 					`) do (
 					    set JSON_ICN=%%a
