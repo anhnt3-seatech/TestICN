@@ -55,8 +55,7 @@ pipeline {
 					  "$raw = Get-Content icn_response.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
 					    set SECURITY_TOKEN=%%a
 					)
-
-                    echo SECURITY_TOKEN=%%a > icn_token.txt                                        
+					echo Security Token: %SECURITY_TOKEN%
                     
                 '''
             }
