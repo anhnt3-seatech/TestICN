@@ -93,8 +93,7 @@ pipeline {
                     rem --- Ghi token vào file để stage sau có thể đọc ---
                     echo %ACCESS_TOKEN% > token.txt
                     
-                    timeout /t 5 /nobreak >nul
-                    
+                  
                     curl -k -c cookies.txt ^
                       -H "Authorization: Bearer %ACCESS_TOKEN%" ^
                       "%URL_ICN_LOGON%?desktop=admin&forceBasic=true" ^
@@ -121,7 +120,6 @@ pipeline {
 					    set SECURITY_TOKEN=%%a
 					)
 					
-					timeout /t 5 /nobreak >nul
 					
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
@@ -138,7 +136,6 @@ pipeline {
 					    set JSON_ICN=%%a
 					)              
  					echo === Save ICN Plugin ===
- 					timeout /t 5 /nobreak >nul
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "%URL_ICN_SAVE_PLUGIN%?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
