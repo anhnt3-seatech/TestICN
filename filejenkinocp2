@@ -57,12 +57,11 @@ pipeline {
 					$raw = Get-Content "icnresponse.json" -Raw
 					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
 					$sec = (ConvertFrom-Json $json).security_token
-					$env:SECURITY_TOKEN=$sec
 					Write-Host "Security Token: $sec"
 					$sec | Out-File -FilePath "security_token.txt" -Encoding ascii
 				'''
 				bat '''
-                    rem set /p SECURITY_TOKEN=<security_token.txt
+                    set /p SECURITY_TOKEN=<security_token.txt
                     echo === Loading ICN Plugin with token %SECURITY_TOKEN% ===
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
