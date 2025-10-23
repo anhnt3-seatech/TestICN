@@ -49,11 +49,11 @@ pipeline {
                       "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon?desktop=admin" ^
                       -H "Content-Type: application/x-www-form-urlencoded" ^
                       -d "userid=%USERNAME%&password=%PASSWORD%" ^
-                      -o icn_response.json
+                      -o response.json
 
-                    for /f "delims=" %%aa in ('powershell -NoProfile -Command ^
-					  "$raw = Get-Content icn_response.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
-					    set SECURITY_TOKEN=%%aa
+                    for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
+					  "$raw = Get-Content response.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
+					    set SECURITY_TOKEN=%%a
 					)
 					echo Security Token: %SECURITY_TOKEN%
                     
