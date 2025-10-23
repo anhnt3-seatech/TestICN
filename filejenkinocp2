@@ -8,6 +8,7 @@ pipeline {
         PASSWORD  = 'Abc@123'
         ACCESS_TOKEN = ''
         SECURITY_TOKEN = ''
+        JSON_ICN='{}'
     }
 
     stages {
@@ -57,12 +58,17 @@ pipeline {
 					$raw = Get-Content "icnresponse.json" -Raw
 					$json = $json = $raw.Substring($raw.IndexOf('{', 2))
 					$sec = (ConvertFrom-Json $json).security_token
-					Write-Host "Security Token: $sec"
 					$sec | Out-File -FilePath "security_token.txt" -Encoding ascii
+					$json | Out-File -FilePath "json_icn.json" -Encoding ascii
+					Write-Host "plugin icn json : $json"
 				'''
 				bat '''
                     set /p SECURITY_TOKEN=<security_token.txt
                     echo === Loading ICN Plugin with token %SECURITY_TOKEN% ===
+                    
+                    set /p JSON_ICN=<json_icn.json
+                    echo === Loading ICN Plugin with json %JSON_ICN% ===
+                    
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar"
