@@ -46,14 +46,14 @@ pipeline {
 					echo === ICN Response (raw JSON) ===
                     type icnresponse.json
                     echo ===============================
-                    
-					for /F "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
-					  "$raw = Get-Content icnresponse.json -Raw; $json = $raw -replace ''^\\{\\}\\&\\&'',''''; (ConvertFrom-Json $json).security_token"') do (
-					  set SECURITY_TOKEN=%%a
-					)
-					echo Security Token: %SECURITY_TOKEN%
+
+					rem for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
+ 					rem "$raw = Get-Content icnresponse.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
+					rem 	set SECURITY_TOKEN=%%a
+ 					rem )
+					rem echo Security Token: %SECURITY_TOKEN%
                 '''
-				powershell '''
+                powershell '''
 					$raw = Get-Content "icnresponse.json" -Raw
 					$json = $raw -replace '^\{\}\&\&',''
 					$sec = (ConvertFrom-Json $json).security_token
@@ -63,7 +63,6 @@ pipeline {
 				bat '''
 					type security_token.txt
 				'''
-				
             }
         }
 
