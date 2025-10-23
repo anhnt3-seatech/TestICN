@@ -55,6 +55,9 @@ pipeline {
 					echo === ICN Response (raw JSON) ===
                     type icnresponse.json
                     echo ===============================
+                    echo === cookies.txt (raw JSON) ===
+                    type cookies.txt
+                    echo ===============================
                     
                     for /f "usebackq delims=" %%aa in ('powershell -NoProfile -Command ^
 					  "$raw = Get-Content icnresponse.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
