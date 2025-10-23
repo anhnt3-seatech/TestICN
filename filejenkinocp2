@@ -8,7 +8,7 @@ pipeline {
         PASSWORD  = 'Abc@123'
         ACCESS_TOKEN = ''
         SECURITY_TOKEN = ''
-        JSON_ICN='{}'
+        JSON_ICN=''
     }
 
     stages {
@@ -69,6 +69,20 @@ pipeline {
                       -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar" ^
                       -o icnload.json
                     type icnload.json
+                    
+                    echo off
+					for /f "usebackq delims=" %%a in (`
+					    powershell -NoProfile -Command ^
+					    "$raw = Get-Content 'icnload.json' -Raw; " ^
+					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
+					    "Write-Output (ConvertFrom-Json $json)"
+					`) do (
+					    set JSON_ICN=%%a
+					)
+					echo JSON_ICN xxxx=%JSON_ICN%
+					
+					
+					
                 '''
                 powershell '''
 					$raw = Get-Content "icnload.json" -Raw
