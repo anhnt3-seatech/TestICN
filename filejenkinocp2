@@ -63,7 +63,6 @@ pipeline {
 					    set SECURITY_TOKEN=%%a
 					)
 					
-					echo SECURITY_TOKEN xxxx=%SECURITY_TOKEN%                   
                     curl -k -b cookies.txt ^
                       -H "security_token: %SECURITY_TOKEN%" ^
                       -X POST "https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin?desktop=admin&fileName=/opt/ibm/plugins/TestABC.jar" ^
@@ -78,16 +77,8 @@ pipeline {
 					    "Write-Output $json"
 					`) do (
 					    set JSON_ICN=%%a
-					)
-					echo JSON_ICN xxxx=%JSON_ICN%
-                
-                	echo === Save ICN Plugin ===
-                    curl -k -b cookies.txt ^
-                      -H "security_token: %SECURITY_TOKEN%" ^
-                      -X POST "http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
-                      -d 'json_post=%JSON_ICN%'
-                	
-                	
+					)              
+ 
                 '''
             }
         }
