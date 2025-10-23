@@ -45,7 +45,8 @@ pipeline {
                 script {
                     bat """
                         echo ">>> Login to OpenShift"
-                        oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
+                        rem oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
+                        oc login https://api.cp4ba.linuxtechi.lan:6443 --username=anhnt --password=anhnt@123 --insecure-skip-tls-verify=true
                         echo ">>> Switch namespace"
                         oc project %NAMESPACE%
 
