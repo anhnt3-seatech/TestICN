@@ -81,7 +81,7 @@ pipeline {
 					echo SECRET_NAME: %SECRET_NAME%
 					
 					rem --- Lấy CLIENT_ID (base64) từ secret ---
-					for /f "usebackq delims=" %%c in (`oc get secret %SECRET_NAME% -n cp4ba-dev -o jsonpath^="{.data.CLIENT_ID}"`) do (
+					for /f "usebackq delims=" %%c in (`oc get secret %SECRET_NAME% -n cp4ba-dev -o jsonpath="{.data.CLIENT_ID}"`) do (
 					    set RAW_CLIENT_ID=%%c
 					)
 					echo RAW_CLIENT_ID (base64): %RAW_CLIENT_ID%

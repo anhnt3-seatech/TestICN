@@ -13,7 +13,7 @@ pipeline {
         ICN_URL = "https://cpd-cp4ba-dev.apps.cp4ba.linuxtechi.lan/icn/navigator/"
         PATH = "C:\\temp\\ocp;${env.PATH}"
         TOKEN_URL = 'https://cp-console-cp4ba-dev.apps.cp4ba.linuxtechi.lan/idprovider/v1/auth/identitytoken'
-        CLIENT_ID = 'rm9egkx2wa7px4ngudn36z06omfsy91d'
+        CLIENT_ID = '' //'rm9egkx2wa7px4ngudn36z06omfsy91d'
         USERNAME  = 'cp4badmin'
         PASSWORD  = 'Abc@123'
         ACCESS_TOKEN = ''
@@ -73,6 +73,27 @@ pipeline {
         stage('Get Access Token') {
             steps {
                 bat '''
+                	echo get CLIENT_ID
+                	rem --- Lấy secret name có chứa 'oidcclient-secret' ---
+					for /f "usebackq delims=" %%a in (`oc get secret -n cp4ba-dev --no-headers ^| findstr "oidcclient-secret"`) do (
+					    for /f "tokens=1" %%b in ("%%a") do (
+					        set SECRET_NAME=%%b
+					    )
+					)
+					echo SECRET_NAME: %SECRET_NAME%
+					
+					rem --- Lấy CLIENT_ID (base64) từ secret ---
+					for /f "usebackq delims=" %%c in (`oc get secret %SECRET_NAME% -n cp4ba-dev -o jsonpath="{.data.CLIENT_ID}"`) do (
+					    set RAW_CLIENT_ID=%%c
+					)
+					echo RAW_CLIENT_ID (base64): %RAW_CLIENT_ID%
+					
+					rem --- Giải mã base64 sang UTF-8 bằng PowerShell ---
+					for /f "usebackq delims=" %%d in (`powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"`) do (
+					    set CLIENT_ID=%%d
+					)
+					echo CLIENT_ID: %CLIENT_ID%
+					
                     echo Calling API to get access token...
 
                     rem --- Gọi API và lưu kết quả ra file tạm ---
