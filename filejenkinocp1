@@ -19,7 +19,8 @@ pipeline {
         ACCESS_TOKEN = ''
         SECURITY_TOKEN = ''
         JSON_ICN=''
-        PATH_PLUGIN='/opt/ibm/plugins/TestABC.jar'
+        JAR_PLUGIN='TestABC.jar'
+        PATH_PLUGIN='/opt/ibm/plugins/%JAR_PLUGIN%'
         URL_ICN_LOGON='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon';
         URL_ICN_LOAD_PLUGIN='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin'
         URL_ICN_SAVE_PLUGIN='http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration'
@@ -64,7 +65,7 @@ pipeline {
                         )
 
                         echo ">>> Copy plugin JAR to ICN pod"
-                        oc cp dist\\TestABC.jar %NAMESPACE%/%ICN_POD%:%PLUGIN_PATH%/
+                        oc cp dist\\%JAR_PLUGIN% %NAMESPACE%/%ICN_POD%:%PLUGIN_PATH%/
 
                     """
                 }
@@ -80,14 +81,11 @@ pipeline {
 					    for /f "tokens=1" %%b in ("%%a") do (
 					        set SECRET_NAME=%%b
 					    )
-					)
-					echo SECRET_NAME: %SECRET_NAME%
-					
+					)				
 					rem --- Lấy CLIENT_ID (base64) từ secret ---
 					for /f "usebackq delims=" %%c in (`oc get secret %SECRET_NAME% -n cp4ba-dev -o jsonpath^="{.data.CLIENT_ID}"`) do (
 					    set RAW_CLIENT_ID=%%c
 					)
-					echo RAW_CLIENT_ID (base64): %RAW_CLIENT_ID%
 					
 					rem --- Giải mã base64 sang UTF-8 bằng PowerShell ---
 					for /f "usebackq delims=" %%d in (`powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"`) do (
@@ -137,7 +135,7 @@ pipeline {
 					    powershell -NoProfile -Command ^
 					    "$raw = Get-Content 'icnload.json' -Raw; " ^
 					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
-					    "$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '/opt/ibm/plugins/TestABC.jar'; " ^
+					    "$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '%PATH_PLUGIN%'; " ^
 					    "Write-Output $json"
 					`) do (
 					    set JSON_ICN=%%a
