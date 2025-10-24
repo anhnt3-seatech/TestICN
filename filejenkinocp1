@@ -25,6 +25,8 @@ pipeline {
         URL_ICN_LOAD_PLUGIN='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin'
         URL_ICN_SAVE_PLUGIN='http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration'
         URL_OCP_LOGIN='https://api.cp4ba.linuxtechi.lan:6443'
+        OCP_USER=anhnt
+        OCP_PASS=anhnt@123
     }
 
     stages {
@@ -59,7 +61,7 @@ pipeline {
                     bat """
                         echo ">>> Login to OpenShift"
                         rem oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
-                        oc login %URL_OCP_LOGIN% --username=%USERNAME% --password=%PASSWORD% --insecure-skip-tls-verify=true
+                        oc login %URL_OCP_LOGIN% --username=%OCP_USER% --password=%OCP_PASS% --insecure-skip-tls-verify=true
                         echo ">>> Switch namespace"
                         oc project %NAMESPACE%
 
