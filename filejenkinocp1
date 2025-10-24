@@ -59,6 +59,7 @@ pipeline {
             steps {
                 script {
                     bat """
+                    	echo yyyPATH_PLUGIN= %PATH_PLUGIN%
                         echo ">>> Login to OpenShift"
                         rem oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
                         oc login %URL_OCP_LOGIN% --username=%OCP_USER% --password=%OCP_PASS% --insecure-skip-tls-verify=true
