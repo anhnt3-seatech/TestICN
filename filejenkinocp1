@@ -49,10 +49,11 @@ pipeline {
             }
         }
         
-        stage('Deploy to ICN Pod') {
+        stage('Copy Plugin to ICN Pod') {
             steps {
                 script {
                     bat """
+                    	@echo off
                     	echo yyyPATH_PLUGIN= %PATH_PLUGIN%%JAR_PLUGIN%
                         echo ">>> Login to OpenShift"
                         rem oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
@@ -75,11 +76,12 @@ pipeline {
                 }
             }
         }
-        stage('Get Access Token') {
+        stage('Load Plugin for ICN') {
             steps {
                 bat '''
+                	@echo off
                 	echo PATH_PLUGINxxx=%PATH_PLUGIN%%JAR_PLUGIN%
-                	rem @echo off
+                	
                 	echo get CLIENT_ID
                 	rem --- Lấy secret name có chứa 'oidcclient-secret' ---
 					for /f "usebackq delims=" %%a in (`oc get secret -n cp4ba-dev --no-headers ^| findstr "oidcclient-secret"`) do (
