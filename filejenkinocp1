@@ -73,6 +73,7 @@ pipeline {
         stage('Get Access Token') {
             steps {
                 bat '''
+                	@echo off
                 	echo get CLIENT_ID
                 	rem --- Lấy secret name có chứa 'oidcclient-secret' ---
 					for /f "usebackq delims=" %%a in (`oc get secret -n cp4ba-dev --no-headers ^| findstr "oidcclient-secret"`) do (
@@ -109,7 +110,7 @@ pipeline {
                     rem --- Ghi token vào file để stage sau có thể đọc ---
                     echo %ACCESS_TOKEN% > token.txt
                     
-                  	@echo off
+                  	
                     curl -k -c cookies.txt ^
                       -H "Authorization: Bearer %ACCESS_TOKEN%" ^
                       "%URL_ICN_LOGON%?desktop=admin&forceBasic=true" ^
