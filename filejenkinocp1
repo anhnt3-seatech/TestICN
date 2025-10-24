@@ -25,8 +25,8 @@ pipeline {
         URL_ICN_LOAD_PLUGIN='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin'
         URL_ICN_SAVE_PLUGIN='http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration'
         URL_OCP_LOGIN='https://api.cp4ba.linuxtechi.lan:6443'
-        OCP_USER=anhnt
-        OCP_PASS=anhnt@123
+        OCP_USER='anhnt'
+        OCP_PASS='anhnt@123'
     }
 
     stages {
