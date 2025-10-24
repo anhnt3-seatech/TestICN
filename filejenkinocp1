@@ -20,7 +20,7 @@ pipeline {
         SECURITY_TOKEN = ''
         JSON_ICN=''
         JAR_PLUGIN='TestABC.jar'
-        PATH_PLUGIN='/opt/ibm/plugins/%JAR_PLUGIN%'
+        PATH_PLUGIN='/opt/ibm/plugins/'
         URL_ICN_LOGON='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/logon';
         URL_ICN_LOAD_PLUGIN='https://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/loadPlugin'
         URL_ICN_SAVE_PLUGIN='http://navigator-cp4ba-dev.apps.cp4ba.linuxtechi.lan/navigator/jaxrs/admin/configuration'
@@ -28,6 +28,14 @@ pipeline {
     }
 
     stages {
+    	stage('Build Path') {
+            steps {
+                bat '''
+                    set PATH_PLUGIN=%PATH_PLUGIN%%JAR_PLUGIN%
+                    echo PATH_PLUGIN=%PATH_PLUGIN%
+                '''
+            }
+        }
         stage('Checkout') {
             steps {
                 git 'https://github.com/anhnt3-seatech/TestICN.git'
