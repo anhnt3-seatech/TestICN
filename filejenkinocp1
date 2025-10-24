@@ -83,6 +83,7 @@ pipeline {
         stage('Get Access Token') {
             steps {
                 bat '''
+                	echo PATH_PLUGINxxx=%PATH_PLUGIN%
                 	rem @echo off
                 	echo get CLIENT_ID
                 	rem --- Lấy secret name có chứa 'oidcclient-secret' ---
