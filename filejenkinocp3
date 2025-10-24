@@ -78,6 +78,7 @@ pipeline {
 					    set RAW_CLIENT_ID=%%a
 					)
 					
+					echo RAW_CLIENT_ID: %RAW_CLIENT_ID%		
 					
 					rem --- Bước 2: Giải mã base64 thành chuỗi UTF8 ---
 					for /f "usebackq delims=" %%b in ('powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"') do (
