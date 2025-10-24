@@ -83,7 +83,7 @@ pipeline {
         stage('Get Access Token') {
             steps {
                 bat '''
-                	@echo off
+                	rem @echo off
                 	echo get CLIENT_ID
                 	rem --- Lấy secret name có chứa 'oidcclient-secret' ---
 					for /f "usebackq delims=" %%a in (`oc get secret -n cp4ba-dev --no-headers ^| findstr "oidcclient-secret"`) do (
