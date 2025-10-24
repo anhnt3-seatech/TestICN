@@ -32,7 +32,6 @@ pipeline {
             steps {
                 bat '''
                     set PATH_PLUGIN=%PATH_PLUGIN%%JAR_PLUGIN%
-                    echo PATH_PLUGIN=%PATH_PLUGIN%
                 '''
             }
         }
