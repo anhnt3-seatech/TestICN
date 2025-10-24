@@ -70,22 +70,15 @@ pipeline {
         }
         stage('Deploy ICN Plugin') {
             steps {
+            	powershell '''
+					$secretName = (oc get secret -n cp4ba-dev --no-headers | Select-String "oidcclient-secret").ToString().Split(" ")[0]
+					$clientId = oc get secret cpd-oidcclient-secret -n cp4ba-dev -o jsonpath='{.data.CLIENT_ID}' | %{[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_))}
+					Write-Host "CLIENT_ID: $clientId"
+				'''
                 bat '''
                     echo Calling API to get access token...
 
-					rem --- Bước 1: Lấy giá trị base64 của client_id ---
-					for /f "usebackq delims=" %%a in ('oc get secret cpd-oidcclient-secret -n cp4ba-dev -o jsonpath="{.data.CLIENT_ID}"') do (
-					    set RAW_CLIENT_ID=%%a
-					)
-					
-					echo RAW_CLIENT_ID: %RAW_CLIENT_ID%		
-					
-					rem --- Bước 2: Giải mã base64 thành chuỗi UTF8 ---
-					for /f "usebackq delims=" %%b in ('powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"') do (
-					    set CLIENT_ID=%%b
-					)
-					
-					echo CLIENT_ID: %CLIENT_ID%				
+							
 					
                     rem --- Gọi API và lưu kết quả ra file tạm ---
                     curl -k -X POST "%TOKEN_URL%" ^
