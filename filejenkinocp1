@@ -109,7 +109,7 @@ pipeline {
                     rem --- Ghi token vào file để stage sau có thể đọc ---
                     echo %ACCESS_TOKEN% > token.txt
                     
-                  
+                  	@echo off
                     curl -k -c cookies.txt ^
                       -H "Authorization: Bearer %ACCESS_TOKEN%" ^
                       "%URL_ICN_LOGON%?desktop=admin&forceBasic=true" ^
