@@ -91,9 +91,7 @@ pipeline {
 					rem --- Giải mã base64 sang UTF-8 bằng PowerShell ---
 					for /f "usebackq delims=" %%d in (`powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"`) do (
 					    set CLIENT_ID=%%d
-					)
-					echo CLIENT_ID: %CLIENT_ID%
-					
+					)				
                     echo Calling API to get access token...
 
                     rem --- Gọi API và lưu kết quả ra file tạm ---
@@ -102,16 +100,11 @@ pipeline {
                       -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
                       -o response.json
 					
-					echo === response (raw JSON) ===
-                    type response.json
-                    echo ===============================
-                    
+					
                     rem --- Parse access_token từ JSON bằng PowerShell ---
                     for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
                         set ACCESS_TOKEN=%%a
                     )
-
-                    echo Access Token: %ACCESS_TOKEN%
 
                     rem --- Ghi token vào file để stage sau có thể đọc ---
                     echo %ACCESS_TOKEN% > token.txt
@@ -123,16 +116,6 @@ pipeline {
                       -H "Content-Type: application/x-www-form-urlencoded" ^
                       -d "userid=%USERNAME%&password=%PASSWORD%" ^
                       -o icnresponse.json
-
-					echo === ICN Response (raw JSON) ===
-                    type icnresponse.json
-                    echo ===============================
-
-					rem for /f "usebackq delims=" %%a in ('powershell -NoProfile -Command ^
- 					rem "$raw = Get-Content icnresponse.json -Raw; $json = $raw.Substring($raw.IndexOf('{', 2)); (ConvertFrom-Json $json).security_token"') do (
-					rem 	set SECURITY_TOKEN=%%a
- 					rem )
-					rem echo Security Token: %SECURITY_TOKEN%
 
 					for /f "usebackq delims=" %%a in (`
 					    powershell -NoProfile -Command ^
