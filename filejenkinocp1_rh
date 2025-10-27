@@ -2,14 +2,14 @@ pipeline {
     agent any
     
     tools {
-        ant 'ApacheAnt'   // Cấu hình tool Ant trong Jenkins
+        ant 'ApacheAnt'   // Cáº¥u hÃ¬nh tool Ant trong Jenkins
     }
 
     environment {
         NAMESPACE = "cp4ba-dev"          // namespace CP4BA
-        ICN_LABEL = "app=icp4adeploy-navigator-deploy"                  // label để tìm pod ICN
+        ICN_LABEL = "app=icp4adeploy-navigator-deploy"                  // label Ä‘á»ƒ tÃ¬m pod ICN
         PLUGIN_PATH = "/opt/ibm/plugins"
-        PLUGIN_CLASS = "com.vn.test.TestABCPlugin"  // class plugin chính
+        PLUGIN_CLASS = "com.vn.test.TestABCPlugin"  // class plugin chÃ­nh
         ICN_URL = "https://cpd-cp4ba-dev.apps.cp4ba.linuxtechi.lan/icn/navigator/"
         PATH = "C:\\temp\\ocp;${env.PATH}"
         TOKEN_URL = 'https://cp-console-cp4ba-dev.apps.cp4ba.linuxtechi.lan/idprovider/v1/auth/identitytoken'
@@ -39,7 +39,7 @@ pipeline {
 
         stage('Build Plugin') {
             steps {
-                bat 'ant clean compile dist'
+                sh 'ant clean compile dist'
             }
         }
         
@@ -65,7 +65,7 @@ pipeline {
                         for /f "delims=" %%i in ('oc get pod -n cp4ba-dev -l app^=icp4adeploy-navigator-deploy -o jsonpath^="{.items[0].metadata.name}"') do set ICN_POD=%%i
                         echo Found ICN pod: %ICN_POD%
                         if "%ICN_POD%"=="" (
-                            echo "ERROR: Không tìm thấy ICN pod!"
+                            echo "ERROR: KhÃ´ng tÃ¬m tháº¥y ICN pod!"
                             exit /b 1
                         )
 
@@ -83,36 +83,36 @@ pipeline {
                 	echo PATH_PLUGINxxx=%PATH_PLUGIN%%JAR_PLUGIN%
                 	
                 	echo get CLIENT_ID
-                	rem --- Lấy secret name có chứa 'oidcclient-secret' ---
+                	rem --- Láº¥y secret name cÃ³ chá»©a 'oidcclient-secret' ---
 					for /f "usebackq delims=" %%a in (`oc get secret -n cp4ba-dev --no-headers ^| findstr "oidcclient-secret"`) do (
 					    for /f "tokens=1" %%b in ("%%a") do (
 					        set SECRET_NAME=%%b
 					    )
 					)				
-					rem --- Lấy CLIENT_ID (base64) từ secret ---
+					rem --- Láº¥y CLIENT_ID (base64) tá»« secret ---
 					for /f "usebackq delims=" %%c in (`oc get secret %SECRET_NAME% -n cp4ba-dev -o jsonpath^="{.data.CLIENT_ID}"`) do (
 					    set RAW_CLIENT_ID=%%c
 					)
 					
-					rem --- Giải mã base64 sang UTF-8 bằng PowerShell ---
+					rem --- Giáº£i mÃ£ base64 sang UTF-8 báº±ng PowerShell ---
 					for /f "usebackq delims=" %%d in (`powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"`) do (
 					    set CLIENT_ID=%%d
 					)				
                     echo Calling API to get access token...
 
-                    rem --- Gọi API và lưu kết quả ra file tạm ---
+                    rem --- Gá»�i API vÃ  lÆ°u káº¿t quáº£ ra file táº¡m ---
                     curl -k -X POST "%TOKEN_URL%" ^
                       -H "Content-Type: application/x-www-form-urlencoded" ^
                       -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
                       -o response.json
 					
 					
-                    rem --- Parse access_token từ JSON bằng PowerShell ---
+                    rem --- Parse access_token tá»« JSON báº±ng PowerShell ---
                     for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
                         set ACCESS_TOKEN=%%a
                     )
 
-                    rem --- Ghi token vào file để stage sau có thể đọc ---
+                    rem --- Ghi token vÃ o file Ä‘á»ƒ stage sau cÃ³ thá»ƒ Ä‘á»�c ---
                     echo %ACCESS_TOKEN% > token.txt
                     
                   	
@@ -159,10 +159,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ ICN Plugin build & deploy thành công!"
+            echo "âœ… ICN Plugin build & deploy thÃ nh cÃ´ng!"
         }
         failure {
-            echo "❌ Pipeline thất bại!"
+            echo "â�Œ Pipeline tháº¥t báº¡i!"
         }
         always {
             echo "Cleaning temporary files..."
