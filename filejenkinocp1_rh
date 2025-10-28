@@ -52,128 +52,111 @@ pipeline {
         stage('Copy Plugin to ICN Pod') {
             steps {
                 script {
-                    bat """
-                    	@echo off
-                    	echo yyyPATH_PLUGIN= %PATH_PLUGIN%%JAR_PLUGIN%
-                        echo ">>> Login to OpenShift"
-                        rem oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
-                        oc login %URL_OCP_LOGIN% --username=%OCP_USER% --password=%OCP_PASS% --insecure-skip-tls-verify=true
-                        echo ">>> Switch namespace"
-                        oc project %NAMESPACE%
-
-                        echo ">>> Get ICN pod name"
-                        for /f "delims=" %%i in ('oc get pod -n cp4ba-dev -l app^=icp4adeploy-navigator-deploy -o jsonpath^="{.items[0].metadata.name}"') do set ICN_POD=%%i
-                        echo Found ICN pod: %ICN_POD%
-                        if "%ICN_POD%"=="" (
-                            echo "ERROR: KhÃ´ng tÃ¬m tháº¥y ICN pod!"
-                            exit /b 1
-                        )
-
-                        echo ">>> Copy plugin JAR to ICN pod"
-                        oc cp dist\\%JAR_PLUGIN% %NAMESPACE%/%ICN_POD%:%PLUGIN_PATH%/
-
-                    """
+                    sh '''
+		                echo ">>> PATH_PLUGIN = ${PATH_PLUGIN}${JAR_PLUGIN}"
+		                echo ">>> Login to OpenShift"
+		                # oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
+		                oc login ${URL_OCP_LOGIN} --username=${OCP_USER} --password=${OCP_PASS} --insecure-skip-tls-verify=true
+		
+		                echo ">>> Switch namespace"
+		                oc project ${NAMESPACE}
+		
+		                echo ">>> Get ICN pod name"
+		                ICN_POD=$(oc get pod -n ${NAMESPACE} -l app=icp4adeploy-navigator-deploy -o jsonpath="{.items[0].metadata.name}")
+		                echo "Found ICN pod: ${ICN_POD}"
+		
+		                if [ -z "$ICN_POD" ]; then
+		                    echo "ERROR: Không tìm thấy ICN pod!"
+		                    exit 1
+		                fi
+		
+		                echo ">>> Copy plugin JAR to ICN pod"
+		                oc cp dist/${JAR_PLUGIN} ${NAMESPACE}/${ICN_POD}:${PLUGIN_PATH}/
+		            '''
                 }
             }
         }
         stage('Load Plugin for ICN') {
             steps {
-                bat '''
-                	@echo off
-                	echo PATH_PLUGINxxx=%PATH_PLUGIN%%JAR_PLUGIN%
-                	
-                	echo get CLIENT_ID
-                	rem --- Láº¥y secret name cÃ³ chá»©a 'oidcclient-secret' ---
-					for /f "usebackq delims=" %%a in (`oc get secret -n cp4ba-dev --no-headers ^| findstr "oidcclient-secret"`) do (
-					    for /f "tokens=1" %%b in ("%%a") do (
-					        set SECRET_NAME=%%b
-					    )
-					)				
-					rem --- Láº¥y CLIENT_ID (base64) tá»« secret ---
-					for /f "usebackq delims=" %%c in (`oc get secret %SECRET_NAME% -n cp4ba-dev -o jsonpath^="{.data.CLIENT_ID}"`) do (
-					    set RAW_CLIENT_ID=%%c
-					)
-					
-					rem --- Giáº£i mÃ£ base64 sang UTF-8 báº±ng PowerShell ---
-					for /f "usebackq delims=" %%d in (`powershell -NoProfile -Command "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%RAW_CLIENT_ID%'))"`) do (
-					    set CLIENT_ID=%%d
-					)				
-                    echo Calling API to get access token...
+                sh '''
+			        echo "=== Starting ICN plugin deployment ==="
+			
+			        echo "PATH_PLUGINxxx=${PATH_PLUGIN}${JAR_PLUGIN}"
+			
+			        echo "=== Get CLIENT_ID from OpenShift secret ==="
+			
+			        # Lấy tên secret chứa "oidcclient-secret"
+			        SECRET_NAME=$(oc get secret -n cp4ba-dev --no-headers | grep "oidcclient-secret" | awk "{print \\$1}")
+			
+			        # Lấy CLIENT_ID (base64)
+			        RAW_CLIENT_ID=$(oc get secret "$SECRET_NAME" -n cp4ba-dev -o jsonpath="{.data.CLIENT_ID}")
+			
+			        # Giải mã base64 sang UTF-8
+			        CLIENT_ID=$(echo "$RAW_CLIENT_ID" | base64 --decode)
+			
+			        echo "CLIENT_ID=$CLIENT_ID"
+			
+			        echo "=== Calling API to get access token ==="
+			
+			        # Gọi API lấy token và lưu kết quả vào file JSON
+			        curl -k -X POST "$TOKEN_URL" \
+			          -H "Content-Type: application/x-www-form-urlencoded" \
+			          -d "grant_type=password&client_id=${CLIENT_ID}&username=${USERNAME}&password=${PASSWORD}&scope=openid" \
+			          -o response.json
+			
+			        # Parse access_token từ JSON bằng jq
+			        ACCESS_TOKEN=$(jq -r ".access_token" response.json)
+			        echo "$ACCESS_TOKEN" > token.txt
+			
+			        echo "=== Get ICN security token ==="
+			
+			        curl -k -c cookies.txt \
+			          -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+			          "${URL_ICN_LOGON}?desktop=admin&forceBasic=true" \
+			          -H "Content-Type: application/x-www-form-urlencoded" \
+			          -d "userid=${USERNAME}&password=${PASSWORD}" \
+			          -o icnresponse.json
 
-                    rem --- Gá»�i API vÃ  lÆ°u káº¿t quáº£ ra file táº¡m ---
-                    curl -k -X POST "%TOKEN_URL%" ^
-                      -H "Content-Type: application/x-www-form-urlencoded" ^
-                      -d "grant_type=password&client_id=%CLIENT_ID%&username=%USERNAME%&password=%PASSWORD%&scope=openid" ^
-                      -o response.json
-					
-					
-                    rem --- Parse access_token tá»« JSON báº±ng PowerShell ---
-                    for /f "delims=" %%a in ('powershell -NoProfile -Command "(Get-Content response.json | ConvertFrom-Json).access_token"') do (
-                        set ACCESS_TOKEN=%%a
-                    )
-
-                    rem --- Ghi token vÃ o file Ä‘á»ƒ stage sau cÃ³ thá»ƒ Ä‘á»�c ---
-                    echo %ACCESS_TOKEN% > token.txt
-                    
-                  	
-                    curl -k -c cookies.txt ^
-                      -H "Authorization: Bearer %ACCESS_TOKEN%" ^
-                      "%URL_ICN_LOGON%?desktop=admin&forceBasic=true" ^
-                      -H "Content-Type: application/x-www-form-urlencoded" ^
-                      -d "userid=%USERNAME%&password=%PASSWORD%" ^
-                      -o icnresponse.json
-
-					for /f "usebackq delims=" %%a in (`
-					    powershell -NoProfile -Command ^
-					    "$raw = Get-Content 'icnresponse.json' -Raw; " ^
-					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
-					    "Write-Output ((ConvertFrom-Json $json).security_token)"
-					`) do (
-					    set SECURITY_TOKEN=%%a
-					)
-					
-					
-                    curl -k -b cookies.txt ^
-                      -H "security_token: %SECURITY_TOKEN%" ^
-                      -X POST "%URL_ICN_LOAD_PLUGIN%?desktop=admin&fileName=%PATH_PLUGIN%%JAR_PLUGIN%&plugin=TestABCPlugin&enable=true" ^
-                      -o icnload.json
-                      
-					for /f "usebackq delims=" %%a in (`
-					    powershell -NoProfile -Command ^
-					    "$raw = Get-Content 'icnload.json' -Raw; " ^
-					    "$json = $raw.Substring($raw.IndexOf('{', 2)); " ^
-					    "$json | Add-Member -NotePropertyName 'filename' -NotePropertyValue '%PATH_PLUGIN%%JAR_PLUGIN%'; " ^
-					    "Write-Output $json"
-					`) do (
-					    set JSON_ICN=%%a
-					)              
- 					echo === Save ICN Plugin ===
-                    curl -k -b cookies.txt ^
-                      -H "security_token: %SECURITY_TOKEN%" ^
-                      -X POST "%URL_ICN_SAVE_PLUGIN%?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" ^
-                      -d 'json_post=%JSON_ICN%'
-                '''
+					echo "==== DEBUG ICN RESPONSE ===="
+					cat icnresponse.json
+					echo "============================"
+					SECURITY_TOKEN=$(sed 's/^{}&&//' icnresponse.json | jq -r .security_token)
+					echo "Security Token = ${SECURITY_TOKEN}"
+			        echo "=== Load ICN Plugin ==="
+			
+			        curl -k -b cookies.txt \
+			          -H "security_token: ${SECURITY_TOKEN}" \
+			          -X POST "${URL_ICN_LOAD_PLUGIN}?desktop=admin&fileName=${PATH_PLUGIN}${JAR_PLUGIN}&plugin=TestABCPlugin&enable=true" \
+			          -o icnload.json
+			
+			        # Bổ sung trường filename vào JSON (dùng jq)
+					JSON_ICN=$(sed 's/^{}&&//' icnload.json| jq --arg fn "${PATH_PLUGIN}${JAR_PLUGIN}" '. + {filename: $fn}')
+			
+			        echo "=== Save ICN Plugin ==="
+			        curl -k -b cookies.txt \
+			          -H "security_token: ${SECURITY_TOKEN}" \
+			          -X POST "${URL_ICN_SAVE_PLUGIN}?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" \
+			          -d "json_post=${JSON_ICN}"
+			
+			        echo "=== Done ==="
+			    '''
             }
         }
     }
 
     post {
-        success {
-            echo "âœ… ICN Plugin build & deploy thÃ nh cÃ´ng!"
-        }
-        failure {
-            echo "â�Œ Pipeline tháº¥t báº¡i!"
-        }
-        always {
-            echo "Cleaning temporary files..."
-            bat 'if exist response.json del response.json'
-            bat 'if exist token.txt del token.txt'
-            bat 'if exist icn_response.json del icn_response.json'
-            bat 'if exist security_token.txt del security_token.txt'
-            bat 'if exist icn_response.json del icnload.json'
-            bat 'if exist icnload.json del icnload.json'
-            bat 'if exist icnjson.json del icnjson.json'
-            bat 'if exist icnresponse.json del icnresponse.json'
-        }
-    }
+	    success {
+	        echo "✅ ICN Plugin build & deploy thành công!"
+	    }
+	    failure {
+	        echo "❌ Pipeline thất bại!"
+	    }
+	    always {
+	        echo "Cleaning temporary files..."
+	        sh '''
+	            rm -f response.json token.txt icn_response.json \
+	                  security_token.txt icnload.json icnjson.json icnresponse.json
+	        '''
+	    }
+	}
 }
