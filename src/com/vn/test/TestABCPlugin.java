@@ -82,7 +82,7 @@ public class TestABCPlugin extends Plugin {
 	 *         the plug-in.
 	 */
 	public String getVersion() {
-		return "1.0.32";
+		return "1.0.33";
 	}
 
 	/**
