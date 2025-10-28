@@ -27,6 +27,7 @@ pipeline {
         URL_OCP_LOGIN='https://api.cp4ba.linuxtechi.lan:6443'
         OCP_USER='anhnt'
         OCP_PASS='anhnt@123'
+        PLUGIN_ID='TestABCPlugin'
     }
 
     stages {
@@ -136,7 +137,7 @@ pipeline {
 			        echo "=== Save ICN Plugin ==="
 			        curl -k -b cookies.txt \
 			          -H "security_token: ${SECURITY_TOKEN}" \
-			          -X POST "${URL_ICN_SAVE_PLUGIN}?desktop=admin&action=update&id=TestABCPlugin&configuration=PluginConfig" \
+			          -X POST "${URL_ICN_SAVE_PLUGIN}?desktop=admin&action=update&id=${PLUGIN_ID}&configuration=PluginConfig" \
 			          -d "json_post=${JSON_ICN}"
 			
 			        echo "=== Done ==="
