@@ -53,6 +53,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    	set +x
 		                echo ">>> PATH_PLUGIN = ${PATH_PLUGIN}${JAR_PLUGIN}"
 		                echo ">>> Login to OpenShift"
 		                # oc login --token=sha256~TUPzm2sbJNW53KTFzNsBRWlSKZxxVLSJiFvLqsCe6os --server=https://api.cp4ba.linuxtechi.lan:6443 --insecure-skip-tls-verify=true
@@ -72,6 +73,7 @@ pipeline {
 		
 		                echo ">>> Copy plugin JAR to ICN pod"
 		                oc cp dist/${JAR_PLUGIN} ${NAMESPACE}/${ICN_POD}:${PLUGIN_PATH}/
+		                set -x
 		            '''
                 }
             }
@@ -79,6 +81,7 @@ pipeline {
         stage('Load Plugin for ICN') {
             steps {
                 sh '''
+                	set +x
 			        echo "=== Starting ICN plugin deployment ==="
 			
 			        echo "PATH_PLUGINxxx=${PATH_PLUGIN}${JAR_PLUGIN}"
@@ -137,6 +140,7 @@ pipeline {
 			          -d "json_post=${JSON_ICN}"
 			
 			        echo "=== Done ==="
+			        set -x
 			    '''
             }
         }
