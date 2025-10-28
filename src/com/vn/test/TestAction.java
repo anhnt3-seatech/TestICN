@@ -36,7 +36,7 @@ public class TestAction extends PluginAction {
 	 * @return A short description of the action.
 	 */
 	public String getName(Locale locale) {
-		return "TestAction31";
+		return "TestAction32";
 	}
 
 	/**
