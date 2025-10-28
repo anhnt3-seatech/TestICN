@@ -117,9 +117,7 @@ pipeline {
 			          -d "userid=${USERNAME}&password=${PASSWORD}" \
 			          -o icnresponse.json
 
-					echo "==== DEBUG ICN RESPONSE ===="
-					cat icnresponse.json
-					echo "============================"
+					
 					SECURITY_TOKEN=$(sed 's/^{}&&//' icnresponse.json | jq -r .security_token)
 					echo "Security Token = ${SECURITY_TOKEN}"
 			        echo "=== Load ICN Plugin ==="
